@@ -115,8 +115,6 @@ def get_sample_size(
                     math.ceil(pair_size * ballots_per_pair_vote),
                 )
 
-    # As in R2B2, dilution and the maximum across pairs are planning estimates,
-    # not an exact joint probability that every pair will pass in the next round.
     return samples
 
 
@@ -267,19 +265,19 @@ def pairwise_find_kmin(
             <= alpha
         )
 
-    # BRAVO's passing winner count bounds Providence's from above.
+    # BRAVO's k_min bounds is an upper bound on Providence's k_min.
     bravo_kmin = math.ceil(
         (log_prior_ratio - math.log(alpha) - round_size * log_loser_ratio)
         / (log_winner_ratio - log_loser_ratio)
     )
     left, right = 0, min(round_size, max(0, bravo_kmin))
     if not passes(right):
-        # Verify the bound rather than relying on floating-point rounding.
+        # Check that the upper bound passes before starting the binary search.
         if right == round_size or not passes(round_size):
             return None
         right = round_size
 
-    # For a fixed round size, risk decreases with the winner vote count.
+    # Binary search.
     while left < right:
         mid = (left + right) // 2
         if passes(mid):
